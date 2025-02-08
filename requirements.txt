@@ -1,0 +1,8 @@
+python-telegram-bot
+spotipy
+requests
+python-dotenv
+aiohttp
+ffmpeg-python
+pytgcalls
+pyrogram
