@@ -37,7 +37,7 @@ sp = spotipy.Spotify(client_credentials_manager=spotify_credentials_manager)
 
 # Telegram Bot API
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-updater = Updater(BOT_TOKEN)
+updater = Updater(token=BOT_TOKEN)
 dispatcher = updater.dispatcher
 
 # Telegram User Client
