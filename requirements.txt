@@ -1,9 +1,8 @@
-python-telegram-bot==20.3
-    spotipy==2.22.0
-    requests==2.31.0
-    python-dotenv==1.0.0
-    aiohttp==3.8.5
-    ffmpeg-python==0.2.0
-    pytgcalls==0.0.2
-    tgcalls==0.0.2
-    pyrogram==2.0.105
+python-telegram-bot
+spotipy
+requests
+python-dotenv
+aiohttp
+ffmpeg-python
+pytgcalls
+pyrogram
