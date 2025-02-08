@@ -172,7 +172,7 @@ async def main() -> None:
     global bot, assistant, pytgcalls
 
     # Initialize Pyrogram clients
-    bot = Client("music_bot", api_id=BOT_API_ID, api_hash=BOT_API_HASH, bot_token=TELEGRAM_TOKEN)
+    bot = Client("music_bot", bot_token=TELEGRAM_TOKEN)
     assistant = Client(
         "assistant", api_id=ASSISTANT_API_ID, api_hash=ASSISTANT_API_HASH, session_string=ASSISTANT_SESSION_STRING
     )
