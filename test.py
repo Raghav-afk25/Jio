@@ -13,20 +13,18 @@ import io
 import requests
 
 # Spotify API credentials
-SPOTIPY_CLIENT_ID = 'YOUR_SPOTIFY_CLIENT_ID'  # Replace with your actual client ID
-SPOTIPY_CLIENT_SECRET = 'YOUR_SPOTIFY_CLIENT_SECRET'  # Replace with your actual client secret
+SPOTIPY_CLIENT_ID = '95f4f5c6df5744698035a0948e801ad9'  # Replace with your actual client ID
+SPOTIPY_CLIENT_SECRET = '4b03167b38c943c3857333b3f5ea95ea'  # Replace with your actual client secret
 
 # Telegram Bot and Assistant credentials
-TELEGRAM_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'  # Replace with your actual bot token
-BOT_API_ID = 12345  # Your bot's API ID from my.telegram.org
-BOT_API_HASH = "YOUR_BOT_API_HASH"  # Your bot's API hash from my.telegram.org
+TELEGRAM_TOKEN = '7073381155:AAHsMLX0Us5PTTFi1tKqO2ODJGrcCU-psz4' # Replace with your actual bot token
 
-ASSISTANT_API_ID = 67890  # Your assistant account's API ID from my.telegram.org
-ASSISTANT_API_HASH = "YOUR_ASSISTANT_API_HASH"  # Your assistant account's API hash from my.telegram.org
-ASSISTANT_SESSION_STRING = "YOUR_ASSISTANT_SESSION_STRING"  # Get this manually or through phone number auth
+ASSISTANT_API_ID = 27898596  # Your assistant account's API ID from my.telegram.org
+ASSISTANT_API_HASH = "621e4f1af531b312917560d4608f18b8"  # Your assistant account's API hash from my.telegram.org
+ASSISTANT_SESSION_STRING = "BQGC-ccAWwiLhsvQpd7jdiZmReOM8zqPb-Ra9Je4THqbS0mq6jYnFQS-K9LDpz-YHqQUMsLOuLqgHdD1edUMQmQhPyjF38VcurIT2b4LYZVeFSzfjXoUKwOUsGIFzlvfo6bUrzM7ouhcP86quH4IR2LfueSXWJdDnvu8qS3Gm5-d7W2M13vebJ5NfEymsUAJW6zjR9IusQ8f5Nei7UzUZsl1ww6cI8T_gcu6wiSP1LfWjOVQ97G6ab3-2jxJ-nPlA3cGi8q5dHhIB81LRZymSq03oSXEMJihIOXPfj2pI0XGlI-Y85nC60hSwXuV5Y02_VmAZ_j157Co39b2r77gjfXzvfMcjgAAAAG0-mQtAA"  # Get this manually or through phone number auth
 
 # Initialize Spotify client
-spotify = Spotify(auth_manager=SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET))
+spotify = Spotify(auth_manager=SpotifyClientCredentials(client_id='95f4f5c6df5744698035a0948e801ad9', client_secret='4b03167b38c943c3857333b3f5ea95ea'))
 
 # Global variables
 bot = None  # Telegram Bot Client
