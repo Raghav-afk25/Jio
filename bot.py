@@ -1,4 +1,4 @@
-
+from pyrogram import Client
 import telegram
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, MessageHandler, filters
@@ -17,9 +17,8 @@ import json
 import subprocess
 import ffmpeg
 from pytgcalls import PyTgCalls
-from pytgcalls.types import InputAudioStream
-from pytgcalls.types.input_stream.quality import HighQualityAudio, MediumQualityAudio, LowQualityAudio
-from pyrogram import Client
+from pytgcalls.types import AudioPiped, AudioQuality
+from pytgcalls.types import HighQualityAudio
 
 load_dotenv()
 
@@ -30,22 +29,28 @@ logger = logging.getLogger(__name__)
 
 # --- API Setup ---
 # Spotify API
-SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
-SPOTIFY_CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
+SPOTIFY_CLIENT_ID = "95f4f5c6df5744698035a0948e801ad9"
+SPOTIFY_CLIENT_SECRET = "4b03167b38c943c3857333b3f5ea95ea"
 spotify_credentials_manager = SpotifyClientCredentials(client_id=SPOTIFY_CLIENT_ID, client_secret=SPOTIFY_CLIENT_SECRET)
 sp = spotipy.Spotify(client_credentials_manager=spotify_credentials_manager)
 
 # Telegram Bot API
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-updater = Updater(token=BOT_TOKEN)
+BOT_TOKEN = "7741293072:AAEiWZSyFz1V39uQYbHEk10BTUoPYiUxyS4"
+updater = Updater(BOT_TOKEN)
 dispatcher = updater.dispatcher
 
 # Telegram User Client
-API_ID = os.getenv("API_ID")
-API_HASH = os.getenv("API_HASH")
-SESSION = os.getenv("SESSION")
-telegram_client = Client("stream_music", api_id=int(API_ID), api_hash=API_HASH, session_string=SESSION)
-pytgcalls = PyTgCalls(telegram_client)
+API_ID = 24620300
+API_HASH = "9a098f01aa56c836f2e34aee4b7ef963"
+SESSION = "BQGC-ccAWwiLhsvQpd7jdiZmReOM8zqPb-Ra9Je4THqbS0mq6jYnFQS-K9LDpz-YHqQUMsLOuLqgHdD1edUMQmQhPyjF38VcurIT2b4LYZVeFSzfjXoUKwOUsGIFzlvfo6bUrzM7ouhcP86quH4IR2LfueSXWJdDnvu8qS3Gm5-d7W2M13vebJ5NfEymsUAJW6zjR9IusQ8f5Nei7UzUZsl1ww6cI8T_gcu6wiSP1LfWjOVQ97G6ab3-2jxJ-nPlA3cGi8q5dHhIB81LRZymSq03oSXEMJihIOXPfj2pI0XGlI-Y85nC60hSwXuV5Y02_VmAZ_j157Co39b2r77gjfXzvfMcjgAAAAG0-mQtAA"
+pytgcalls = PyTgCalls(
+          Client(
+        "assistant",
+        api_id=int(API_ID),
+        api_hash=API_HASH,
+        session_string=SESSION,
+       ))
+
 
 # --- Download Logic ---
 async def download_file(url: str, update: Update, context: CallbackContext) -> BytesIO:
@@ -97,24 +102,21 @@ def convert_to_pcm(audio_file: BytesIO) -> BytesIO:
     logger.error(f"FFmpeg Conversion Error: {e}")
     return None
 
-async def play_audio_in_voice_chat(chat_id: int, audio_file: BytesIO):
-  """Plays raw PCM audio data in a Telegram voice chat."""
-  try:
-    pcm_audio = convert_to_pcm(audio_file)
-    if not pcm_audio:
-      print("Error converting to pcm")
-      return
-    input_stream = InputAudioStream(
-        pcm_audio.read(),
-        quality=HighQualityAudio()
-    )
-    await pytgcalls.join_group_call(
-        chat_id,
-        stream=input_stream
-    )
-    print("Playing audio...")
-  except Exception as e:
-    print(f"Error: {e}")
+
+async def stream_audio(chat_id: int, audio_file: BytesIO):
+    """Streams audio into a Telegram voice chat"""
+    try:
+      pcm_audio = convert_to_pcm(audio_file)
+      if not pcm_audio:
+        return
+      await pytgcalls.join_group_call(
+          chat_id,
+          AudioPiped(
+              pcm_audio,
+            ),
+          )
+    except Exception as e:
+        logger.error(f"Error streaming audio: {e}")
 
 
 # --- Search Logic ---
@@ -151,16 +153,18 @@ def send_search_results(update: Update, context: CallbackContext, jiosaavn_resul
     counter = 1
     if jiosaavn_results:
       for item in jiosaavn_results:
-          track_name = item['title']
-          artist_name = item['more_info']['singers']
+          track_name = item.get('title', 'Unknown Title')  # ✅ Default value if 'title' is missing
+          more_info = item.get('more_info', {})  # Ensure it's a dictionary, not None
+          artist_name = more_info.get('singers', 'Unknown Artist')  # ✅ Safe access
           button_text = f"{counter}. (JioSaavn) {track_name} - {artist_name}"
           keyboard.append([InlineKeyboardButton(button_text, callback_data=f"jiosaavn_{counter-1}")])
           counter += 1
 
     if spotify_results:
       for item in spotify_results:
-        track_name = item['name']
-        artist_name = item['artists'][0]['name']
+        track_name = item.get('title', 'Unknown Title')  # ✅ Default value if 'title' is missing
+        more_info = item.get('more_info', {})  # Ensure it's a dictionary, not None
+        artist_name = more_info.get('singers', 'Unknown Artist')  # ✅ Safe access
         button_text = f"{counter}. (Spotify) {track_name} - {artist_name}"
         keyboard.append([InlineKeyboardButton(button_text, callback_data=f"spotify_{counter-1}")])
         counter += 1
@@ -186,7 +190,7 @@ async def play_track_jiosaavn(update: Update, context: CallbackContext, track_it
             await context.bot.send_message(chat_id=update.callback_query.message.chat.id, text="Download failed")
             return
         audio_file.seek(0)
-        await play_audio_in_voice_chat(chat_id, audio_file)
+        await stream_audio(chat_id, audio_file)
     except Exception as e:
         logger.error(f"Error playing JioSaavn track: {e}")
         await context.bot.send_message(chat_id=update.callback_query.message.chat.id, text="Could not play track.")
@@ -204,7 +208,7 @@ async def play_track_spotify(update: Update, context: CallbackContext, track_ite
             await context.bot.send_message(chat_id=update.callback_query.message.chat.id, text="Download failed")
             return
       audio_file.seek(0)
-      await play_audio_in_voice_chat(chat_id, audio_file)
+      await stream_audio(chat_id, audio_file)
     except Exception as e:
         logger.error(f"Error playing Spotify track: {e}")
         await context.bot.send_message(chat_id=update.callback_query.message.chat.id, text="Could not play track.")
@@ -295,9 +299,9 @@ async def playqueue_command(update: Update, context: CallbackContext):
     await play_queue(update, context)
 
 async def stream_command(update: Update, context: CallbackContext):
-    #chat_id = update.message.chat.id
-    #await pytgcalls.join_group_call(chat_id, AudioQuality.HIGH)
-    update.message.reply_text("Started streaming.  Please select a song to play.")
+    chat_id = update.message.chat.id
+    await pytgcalls.join_group_call(chat_id, AudioQuality.HIGH)
+    update.message.reply_text("Started streaming.")
 
 async def stopstream_command(update: Update, context: CallbackContext):
   await stop_stream(update, context)
